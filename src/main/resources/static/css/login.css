@@ -1,0 +1,49 @@
+@import url("//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css");
+.login-block{
+    background: #DE6262;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to bottom, #FFB88C, #DE6262);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to bottom, #6190E8, #A7BFE8);
+    float:left;
+    width:100%;
+    height: 100vh;
+}
+.banner-sec{background:url(../img/fon.jpg)  no-repeat left bottom; background-size:cover; min-height:500px; border-radius: 0 10px 10px 0; padding:0;}
+.container{  margin : 15vh auto;background:#fff; border-radius: 10px; box-shadow:15px 20px 0px rgba(0,0,0,0.1);}
+.carousel-inner{border-radius:0 10px 10px 0;}
+.carousel-caption{text-align:left; left:5%;}
+.login-sec{padding: 50px 30px; position:relative;}
+.login-sec .copy-text{position:absolute; width:80%; bottom:20px; font-size:13px; text-align:center;}
+.login-sec .copy-text i{color:#FEB58A;}
+.login-sec .copy-text a{color:#E36262;}
+.login-sec h2{margin-bottom:30px; font-weight:800; font-size:30px; color: #399828;}
+.login-sec h2:after{content:" "; width:100px; height:5px; background:#337ab7;; display:block; margin-top:20px; border-radius:3px; margin-left:auto;margin-right:auto}
+.btn-login{
+    background: #399828;
+    color: #fff;
+    font-weight: 600;
+    width: 100%;
+    box-shadow: 0px 0px 7px -1px rgba(0,0,0,1);
+}
+.btn-login:hover {
+    color: #fff;
+    background-color: darkgreen;
+}
+.banner-text{width:70%; position:absolute; bottom:40px; padding-left:20px;}
+.banner-text h2{color:#fff; font-weight:600;}
+.banner-text h2:after{content:" "; width:100px; height:5px; background:#FFF; display:block; margin-top:20px; border-radius:3px;}
+.banner-text p{color:#fff;}
+.login-block header {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.3);
+    width: 100%;
+    height: 70px;
+}
+
+header h1 {
+    box-shadow: 0px 0px 10px 0px #6895e8;
+    font-size: 30px;
+    color: white;
+    font-weight: 800;
+}
