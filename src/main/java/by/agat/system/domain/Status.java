@@ -5,27 +5,26 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.util.List;
-import java.util.Set;
 
 @Data
 @Entity
-@Table(name = "TYPE_DOCUMENT")
-public class TypeDocument {
+@Table(name = "STATUS")
+public class Status {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
-    private int type_id;
+    private int id;
 
-    @Column(name = "TYPE")
-    private String type;
+    @Column(name = "STATUS")
+    private String status;
 
     @JsonIgnore
-    @OneToMany(mappedBy="type", fetch = FetchType.LAZY)
-    private List<Document> documents;
+    @OneToMany(mappedBy = "status", fetch = FetchType.LAZY)
+    private List<DocumentStatus> statuses;
 
     @Override
     public String toString() {
-        return "TypeDocument{}";
+        return "Status{}";
     }
 }

@@ -47,19 +47,15 @@ public class User {
                     name = "role_id", referencedColumnName = "id"))
     private Collection<Role> roles;
 
-    @OneToMany(mappedBy="user")
+    @OneToMany(mappedBy="user", fetch = FetchType.LAZY)
     private List<Document> documents;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<DocumentStatus> statuses;
+
 
     @Override
     public String toString() {
-        return "User{" +
-                "id=" + user_id +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", surname='" + surname + '\'' +
-                ", firstname='" + firstname + '\'' +
-                ", dateRegistration=" + dateRegistration +
-                ", enabled=" + enabled +
-                '}';
+        return "User{}";
     }
 }

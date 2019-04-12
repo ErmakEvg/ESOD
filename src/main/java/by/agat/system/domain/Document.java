@@ -1,9 +1,12 @@
 package by.agat.system.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
+import javax.print.Doc;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Entity
@@ -27,6 +30,7 @@ public class Document {
     @Column(name = "PATH")
     private String path;
 
+    @JsonIgnore
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="USER_ID", nullable=false)
     private User user;
@@ -35,16 +39,11 @@ public class Document {
     @JoinColumn(name="TYPE_ID", nullable=false)
     private TypeDocument type;
 
+    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY)
+    private List<DocumentStatus> statuses;
+
     @Override
     public String toString() {
-        return "Document{" +
-                "uuid=" + uuid +
-                ", bank=" + bank +
-                ", name='" + name + '\'' +
-                ", dateUpload=" + dateUpload +
-                ", path='" + path + '\'' +
-                ", user=" + user +
-                ", type=" + type +
-                '}';
+        return "Document{}";
     }
 }
