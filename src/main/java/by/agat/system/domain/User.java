@@ -38,6 +38,9 @@ public class User {
     @Column(name = "DIRECTORY")
     private String directory;
 
+    @Column(name = "BANK")
+    private int codeBank;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(
             name = "USERS_ROLES",
@@ -45,7 +48,7 @@ public class User {
                     name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(
                     name = "role_id", referencedColumnName = "id"))
-    private Collection<Role> roles;
+    private List<Role> roles;
 
     @OneToMany(mappedBy="user", fetch = FetchType.LAZY)
     private List<Document> documents;

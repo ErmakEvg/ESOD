@@ -8,6 +8,8 @@ import java.util.List;
 
 public interface DocumentService {
 
+    List<Document> getDocumentsByBankAndStatus(int bank, int status);
     void save(Document document);
     List<Document> getDocumentsByUserAndCurrDate(int userId);
+    Document getDocumentByUUID(Long uuid);
 }

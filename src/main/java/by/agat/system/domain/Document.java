@@ -5,6 +5,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import javax.print.Doc;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -45,5 +46,10 @@ public class Document {
     @Override
     public String toString() {
         return "Document{}";
+    }
+
+    public List<DocumentStatus> getStatuses() {
+        statuses.sort(Comparator.comparing(DocumentStatus::getDateChange));
+        return statuses;
     }
 }

@@ -4,11 +4,13 @@ import by.agat.system.domain.*;
 import by.agat.system.services.DocumentService;
 import by.agat.system.services.DocumentStatusService;
 import by.agat.system.services.UserService;
+import by.agat.system.utility.Converter;
 import by.agat.system.utility.FileWorker;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,12 +22,15 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.print.Doc;
+import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,7 +65,6 @@ public class InspectorController {
         UserDetails userDetails = (UserDetails)authentication.getPrincipal();
         User user = userService.findByUsername(userDetails.getUsername());
         model.addObject("user", user);
-
         model.addObject("document", new UploadDocument());
         model.setViewName("inspector/uploadfile");
         return model;
@@ -68,13 +72,19 @@ public class InspectorController {
 
 
     @GetMapping("/getUploadFiles")
-    public @ResponseBody List<Document> getUploadFiles() {
+    public @ResponseBody List<DocumentDTO> getUploadFiles() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User user = userService.findByUsername(userDetails.getUsername());
         SimpleDateFormat sd = new SimpleDateFormat("yyyy-MM-dd");
-        //List<Document> documents = user.getDocuments().stream().filter(document -> sd.format(document.getDateUpload()).equals(sd.format(new Date()))).collect(Collectors.toList());
-        List<Document> documents = documentService.getDocumentsByUserAndCurrDate(user.getUser_id());
+        List<DocumentDTO> documents = new ArrayList<>();
+        List<Document> uploadToday = user.getDocuments().stream().filter(document -> sd.format(document.getDateUpload()).equals(sd.format(new Date()))).collect(Collectors.toList());
+        for (Document document: uploadToday) {
+            DocumentDTO documentDTO = Converter.convertFromDocumentToDTO(document);
+            documents.add(documentDTO);
+        }
+        //List<DocumentDTO> documents = user.getDocuments().stream().filter(document -> sd.format(document.getDateUpload()).equals(sd.format(new Date()))).collect(Collectors.toList());
+        //List<Document> documents = documentService.getDocumentsByUserAndCurrDate(user.getUser_id());
         return documents;
     }
 
@@ -121,5 +131,6 @@ public class InspectorController {
         }
         return "Файлы успешно загружены на сервер!";
     }
+
 
 }

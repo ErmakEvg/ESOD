@@ -40,7 +40,6 @@ public class DocumentRepo {
             document.setPath(resultSet.getString("PATH"));
             return document;
         });
-
         return documents;
     }
 }
