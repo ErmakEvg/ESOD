@@ -24,4 +24,42 @@ hr.message-inner-separator
 .dt-body-right{
     text-align: center;
 }
+.modal-content {
+    border-radius: 0px;
+}
 
+.modal-body {
+    padding: 25px;
+}
+
+.modal-header {
+    background: linear-gradient(to right, #6190e8, #a7bfe8);
+}
+
+.modal-footer .btn {
+    font-weight: bold;
+}
+
+.modal-title {
+    color:white;
+    font-weight: bold;
+}
+
+input.form-input {
+    border: none;
+    height: 36px;
+    border-radius: 0px;
+    border-bottom: 1px solid #999;
+}
+
+.form-label{
+    line-height: 2.6;
+    text-align: right;
+    padding-right: 0px;
+}
+
+.table > thead > tr > th {
+    border-bottom: 1px solid #e6e7e8;
+    vertical-align: middle;
+    height: 30px;
+}

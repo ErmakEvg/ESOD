@@ -1,12 +1,10 @@
 package by.agat.system.utility;
 
 import by.agat.system.domain.Document;
+import org.apache.commons.io.FileUtils;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 
 public class FileWorker {
@@ -29,27 +27,19 @@ public class FileWorker {
         }
     }
 
-   /* public List<Document> getAllDocuments() {
-        List<Document> documents = new ArrayList<>();
-        if(directory == null) {
-            return null;
+    public static String readFromFile(String path) throws IOException {
+
+        String encodedString = "";
+
+        if(!path.contains("sign")) {
+            byte[] fileContent = FileUtils.readFileToByteArray(new File(path));
+            encodedString = Base64.getEncoder().encodeToString(fileContent);
+        } else {
+            encodedString = FileUtils.readFileToString(new File(path));
         }
-        else {
-            File[] directoriesByBank = new File(directory.getPath()).listFiles(File::isDirectory);
-            for (File f : directoriesByBank) {
-                File[] documentsFile = new File(f.getPath()).listFiles(File::isFile);
-                for (File document : documentsFile) {
-                    Document doc = new Document();
-                    doc.setCodeBank(f.getName());
-                    doc.setName(document.getName());
-                    doc.setType("Вклад");
-                    doc.setPath(document.getPath());
-                    documents.add(doc);
-                }
-            }
-            return documents;
-        }
-    }*/
+        return encodedString;
+    }
+
 
 
 }

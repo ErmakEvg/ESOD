@@ -12,6 +12,7 @@ public class DocumentDTO {
     private String path;
     private String status;
     private String typeDoc;
+    private String statusSign;
 
     @Override
     public String toString() {

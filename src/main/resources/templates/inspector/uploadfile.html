@@ -9,68 +9,11 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/css/insp.css}">
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+
     <title>ЕДИНАЯ СИСТЕМА ОБМЕНА ВЫПЛАТНЫМИ ДОКУМЕНТАМИ</title>
     <link href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
-
-    <script type="text/javascript">
-        $(function() {
-            $('#upload_btn').click(function(e) {
-                e.preventDefault();
-                //Disable submit button
-                $(this).prop('disabled',true);
-
-                var form = document.forms[0];
-                var formData = new FormData(form);
-
-                // Ajax call for file uploaling
-                var ajaxReq = $.ajax({
-                    url : '/inspector/upload',
-                    type : 'POST',
-                    data : formData,
-                    cache : false,
-                    contentType : false,
-                    processData : false,
-                    xhr: function(){
-                        //Get XmlHttpRequest object
-                        var xhr = $.ajaxSettings.xhr() ;
-
-                        //Set onprogress event handler
-                        xhr.upload.onprogress = function(event){
-                            var perc = Math.round((event.loaded / event.total) * 100);
-                            $('#progressBar').text(perc + '%');
-                            $('#progressBar').css('width',perc + '%');
-                        };
-                        return xhr ;
-                    },
-                    beforeSend: function( xhr ) {
-                        //Reset alert message and progress bar
-                        $('#alertMsg').text('');
-                        $('#progressBar').text('');
-                        $('#progressBar').css('width','0%');
-                    }
-                });
-
-                // Called on success of file upload
-                ajaxReq.done(function(msg) {
-                    $('#alertMsg').text(msg);
-                    $('input[type=file]').val('');
-                    $('button[type=submit]').prop('disabled',false);
-                    $('#alertMsg').css('color', 'green');
-                    $('#table').DataTable().ajax.reload();
-
-                });
-
-                // Called on failure of file upload
-                ajaxReq.fail(function(jqXHR) {
-                    $('#alertMsg').text(jqXHR.responseText+'('+jqXHR.status+
-                        ' - '+jqXHR.statusText+')');
-                    $('button[type=submit]').prop('disabled',false);
-                    $('#alertMsg').css('color', 'red');
-                });
-            });
-        });
-    </script>
-
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.3.0/css/select.dataTables.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.5.6/css/buttons.dataTables.min.css"/>
 
 </head>
 <body>
@@ -114,7 +57,8 @@
                 <li><a href="#">
                     <em class="fa fa-home"></em>
                 </a></li>
-                <li class="active">Главная</li>
+                <li>Главная</li>
+                <li class="active">Загрузка документов</li>
             </ol>
         </div><!--/.row-->
 
@@ -125,24 +69,30 @@
             </div>
             <div class="panel-body">
 
-            <form class="form-inline" method="POST" th:action="@{/inspector/upload}" th:object="${document}" enctype="multipart/form-data">
+            <form class="form-inline">
                 <div class="form-group">
-                    <input class="btn btn-default" type="file" th:field="*{file}" name="file" webkitdirectory>
+                    <input id="filesInput" class="btn btn-default" type="file" multiple>
                 </div>
-                <button id="upload_btn" style="font-weight: bold;
+            </form>
+
+
+            </div>
+            <div id="filesSelectDiv" class="panel-footer" style="display: none;">
+                <button id="upload_btn" style="display: none; position: absolute; right: 30px;font-weight: bold;
     background-color: #137f15;
     border-color: #286329;
-    box-shadow: 0px 0px 14px -2px rgba(0,0,0,0.75);" class="btn btn-primary" type="submit"><span class="fa fa-cloud-upload"></span> Загрузить</button>
+    box-shadow: 0px 0px 14px -2px rgba(0,0,0,0.75);" type="button"  class="btn btn-primary" ><span class="fa fa-cloud-upload"></span> Загрузить документы</button>
+                <button id="sign" style="display: none; position: absolute; right: 30px;" type="button" class="btn btn-primary"><span class="fa fa-pencil"></span> Подписать документы</button>
 
-            </form>
-                <br>
-                <div class="progress" style="margin-bottom: 10px; height: 20px">
-                    <div id="progressBar" class="progress-bar progress-bar-success" role="progressbar"
-                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">0%</div>
-                </div>
-
-                <!-- Alert -->
-                <div id="alertMsg" style="color: red;font-size: 18px;"></div>
+                <table id="files" class="table table-bordered table-condensed" style="width: 100%" >
+                    <thead>
+                    <tr>
+                        <th>Название файла</th>
+                        <th>Путь</th>
+                        <th>Статус подписания</th>
+                    </tr>
+                    </thead>
+                </table>
             </div>
         </div>
 
@@ -158,7 +108,6 @@
                         <th>Тип документа</th>
                         <th>Путь хранения</th>
                         <th>Статус</th>
-                        <th>Операции</th>
                     </tr>
                     </thead>
                 </table>
@@ -167,15 +116,246 @@
 
     </div>	<!--/.main-->
 
+    <div id="alert_success" class="alert alert-success fade in" hidden="hidden">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+            ×</button>
+        <span class="glyphicon glyphicon-ok"></span> <strong>Успешно выполнено!</strong>
+        <hr class="message-inner-separator">
+        <p>
+            Документы успешно загружены на сервер!</p>
+    </div>
 
+    <div id="alert_success_sign" class="alert alert-success fade in" hidden="hidden">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+            ×</button>
+        <span class="glyphicon glyphicon-ok"></span> <strong>Успешно выполнено!</strong>
+        <hr class="message-inner-separator">
+        <p>
+            Документы успешно подписаны!</p>
+    </div>
 
 
     <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/select/1.3.0/js/dataTables.select.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.5.6/js/dataTables.buttons.min.js"></script>
+    <script src="http://dev.avest.by/avcmxwebp/1.1.5/wrapper/avcmxwebp-1.1.5.js"></script>
+    <script type="text/javascript" th:src="@{/js/ecp.js}"></script>
     <script>
 
         $(document).ready(function() {
+
+            
+
+
+            var tablefiles = $('#files').DataTable({
+                "paging":   false,
+                "ordering": false,
+                "info":     false,
+                "searching": false,
+                "scrollY":  '50vh',
+                "scrollCollapse": true,
+                dom: 'Bfrtip',
+                select: true,
+                buttons: [
+                    {
+                        text: 'Выбрать все',
+                        action: function () {
+                            tablefiles.rows().select();
+                        }
+                    },
+                    {
+                        text: 'Отменить выбор',
+                        action: function () {
+                            tablefiles.rows().deselect();
+                        }
+                    }
+                ],
+                language : {
+                    "decimal":        "",
+                    "emptyTable":     "Нет данных в таблице",
+                    "info":           "Отображено от _START_ до _END_ из _TOTAL_ записей",
+                    "infoEmpty":      "Отображено от 0 до 0 из 0 записей",
+                    "infoFiltered":   "(filtered from _MAX_ total entries)",
+                    "infoPostFix":    "",
+                    "thousands":      ",",
+                    "lengthMenu":     "Показывать _MENU_ записей",
+                    "loadingRecords": "Загрузка...",
+                    "processing":     "Обработка...",
+                    "search":         "Поиск:",
+                    "zeroRecords":    "Записей не найдено",
+                    "paginate": {
+                        "first":      "Первая",
+                        "last":       "Последняя",
+                        "next":       "Следующая",
+                        "previous":   "Предыдущая"
+                    },
+                    "aria": {
+                        "sortAscending":  ": activate to sort column ascending",
+                        "sortDescending": ": activate to sort column descending"
+                    }
+                },
+
+                "columnDefs": [
+                    {
+                       "targets":2,
+                        "orderable": false,
+                        "searchable": false,
+                        "render":function(data){
+                            if(data == 1) {
+                                return "<span style='color:green; font-size: 20px;' class='fa fa-check-square-o'></span>"
+                            } else {
+                                return "<span style='color:orange; font-size: 20px;' class='fa fa-square-o'></span>";
+                            }
+                        },
+                        "className": 'dt-body-right'
+                    }
+                ]
+            });
+            var allFiles = [];
+            var selectedFiles = [];
+            tablefiles
+                .on( 'select', function ( e, dt, type, indexes ) {
+                    tablefiles.rows({ selected: true }).every( function ( rowIdx, tableLoop, rowLoop ) {
+                        var data = this.data();
+                        var flag = false;
+                        if(data[2] === '1') {
+                            $('#sign').css('display', 'none');
+                            $('#upload_btn').css('display', 'block');
+                        } else {
+                            $('#sign').css('display', 'block');
+                            $('#upload_btn').css('display', 'none');
+                        }
+                    });
+
+                } )
+                .on( 'deselect', function ( e, dt, type, indexes ) {
+
+                    var data=tablefiles.rows( { selected: true }).data();
+                    if(data.length === 0) {
+                        $('#sign').css('display', 'none');
+                        $('#upload_btn').css('display', 'none');
+                    }
+                } );
+
+
+            var sign = function () {
+
+                avcmx().connectionAsync(function (error, conn) {
+                    if(error !== undefined) {
+                        return error;
+                    } else {
+
+
+
+                        tablefiles.rows({ selected: true }).every( function ( rowIdx, tableLoop, rowLoop ) {
+                            var data = this.data();
+                            if(data[2] === 0) {
+                                var file = allFiles[rowIdx];
+                                var reader = new FileReader();
+                                reader.readAsDataURL(file);
+                                reader.onerror = function (error) {
+                                    return "Невозможно прочитать выбранный файл";
+                                };
+                                var flags = AVCMF_ADD_SIGN_CERT;
+                                flags |= AVCMF_DETACHED;
+                                reader.onload = function () {
+                                    conn.message(avcmx().blob().base64(reader.result.split(',')[1])).signAsync(flags, function (errors, signm) {
+                                        if (errors !== undefined) {
+
+                                            return;
+                                        }
+                                        var signature = signm.val().base64();
+                                        var path = file.name.substring(0, file.name.length - 4) + '_signature.sign';
+                                        var newBlob = new Blob([signature], {type: 'application/octet-stream'});
+                                        uploadFile(newBlob, path);
+                                    });
+                                };
+
+                                data[2] = '1';
+                                this.data(data);
+                                tablefiles.draw(false);
+                            }
+
+                        });
+                        $("#alert_success_sign").fadeTo(4000, 1500).slideUp(1500, function () {
+                            $("#alert_success_sign").slideUp(1500);
+                        });
+                        $('#upload_btn').css('display', 'block');
+                    }
+                });
+
+
+            };
+
+            $('#upload_btn').click(function () {
+                upload();
+                var rows = tablefiles
+                    .rows( { selected: true } )
+                    .remove()
+                    .draw();
+                tablefiles.draw(false);
+            });
+
+            var upload = function(){
+                var selectedData=tablefiles.rows( { selected: true }).indexes();
+
+                var data = new FormData();
+                jQuery.each(allFiles, function(i, file) {
+                    if(jQuery.inArray(i, selectedData) != -1) {
+                        data.append('file', file);
+                    }
+                });
+
+                var ajaxReq = $.ajax({
+                    url: '/inspector/loadDocument',
+                    type: 'POST',
+                    data: data,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function(data) {
+                        if(data == 'OK') {
+                            $('#upload_btn').css('display', 'none');
+                            $('#filesSelectDiv').css('display', 'none');
+                            $('#sign').css('display', 'none');
+                            $("#alert_success").fadeTo(2000, 500).slideUp(500, function () {
+                                $("#alert_success").slideUp(500);
+                            });
+                            $('#table').DataTable().ajax.reload();
+                        } else {
+                            alert(data);
+                        }
+
+                    }
+                });
+
+            };
+
+            $('#sign').click(function () {
+                $('#sign').css('display', 'none');
+                sign();
+            });
+
+
+
+            $('input[type="file"]').change(function(e){
+                tablefiles.clear().draw();
+                $('#upload_btn').css('display', 'none');
+                $('#sign').css('display', 'none');
+                $('.panel-footer').css('display', 'block');
+                allFiles = $('#filesInput')[0].files;
+                for (var i = 0; i < allFiles.length; i++) {
+                    tablefiles.row.add([
+                        allFiles[i].name,
+                        '',
+                        0
+                    ]);
+                }
+                tablefiles.draw(false);
+            });
+
 
 
 
@@ -216,33 +396,84 @@
                         {data: 'name'},
                         {data: 'typeDoc'},
                         {data: 'path'},
-                        {data: 'status'},
-                        {data: null}
+                        {data: 'status'}
                     ],
-
                     "columnDefs": [
                         {
-                        "targets": -1,
-                        "data": null,
-                        "orderable": false,
-                        "searchable": false,
-                        "defaultContent": "  <button style='    border-radius: 25px;\n" +
-                            "    font-weight: bold;\n" +
-                            "    background-color: #fff;\n" +
-                            "    border-color: #1d4d75;\n" +
-                            "    color: #1d4d75;\n" +
-                            "    border-width: 1px;\n" +
-                            "    border-style: dashed;' class='btn btn-sm btn-success'><span class='fa fa-pencil'></span> ПОДПИСАТЬ</button>"
-                         }
+                            "targets":5,
+                            "orderable": false,
+                            "searchable": false,
+                            "render":function(data){
+
+                                    return "<label style='font-size: 13px;\n" +
+                                        "    box-shadow: 0 7px 6px -6px #777;\n" +
+                                        "    border-radius: 0px;    background-color: #335f34;color: white;' class='label label-success'>" + data + "</label>"
+
+                            },
+                            "className": 'dt-body-right'
+                        }
                     ]
                 });
-            $('#table tbody').on( 'click', 'button', function () {
-
-            } );
 
             });
 
+        var connectEcp = function () {
 
+          avcmx().connectionAsync(function (error, conn) {
+              if(error !== undefined) {
+                  return error;
+              } else {
+                  return conn;
+              }
+          })
+        };
+
+        /**var signDocument = function (conn, file) {
+            var reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onerror = function (error) {
+                return "Невозможно прочитать выбранный файл";
+            };
+            var flags = AVCMF_ADD_SIGN_CERT;
+            flags |= AVCMF_DETACHED;
+            reader.onload = function () {
+                conn.message(avcmx().blob().base64(reader.result.split(',')[1]))
+                    .sign(flags, function (errors, signm) {
+                        if (errors !== undefined) {
+                            return errors;
+                        }
+                        if (signm === undefined) {
+                            return errors;
+                        }
+                        signature = signm.val().base64();
+                        var path =  file.name.substring(0, file.name.length - 4) + '_signature.sign';
+                        var newBlob = new Blob([signature], { type: 'application/octet-stream' });
+
+                        uploadFile(newBlob, path);
+                        return signature;
+                    })
+            }
+        };*/
+
+
+        function uploadFile(file, path) {
+            var formdata = new FormData();
+            formdata.append("file", file);
+            $.ajax({
+                url: "/inspector/uploadSgn?path=" + path,
+                type: "POST",
+                data: formdata,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success:function (data) {
+
+                },
+                error:function (error) {
+                    alert(error);
+                }
+            });
+        };
 
     </script>
 </body>

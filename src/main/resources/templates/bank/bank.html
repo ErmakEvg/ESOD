@@ -9,8 +9,10 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/css/insp.css}">
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
-    <script src="https://fastcdn.org/FileSaver.js/1.1.20151003/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.1/dist/FileSaver.min.js"></script>
     <title>ЕДИНАЯ СИСТЕМА ОБМЕНА ВЫПЛАТНЫМИ ДОКУМЕНТАМИ</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.3.0/css/select.dataTables.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.5.6/css/buttons.dataTables.min.css"/>
     <link href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
 </head>
 <body>
@@ -59,18 +61,18 @@
         </div><!--/.row-->
 
 
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                Директория для сохранения документов
-            </div>
-            <div class="panel-body">
-
-            </div>
-        </div>
-
         <div class="panel panel-info">
             <div class="panel-heading" style="height: 40px;line-height: 20px;">Список выплатных документов</div>
             <div class="panel-body" style="display: block;">
+                <button id="verify_btn" type="button" style="display:none; position: absolute; left: 290px;    font-weight: bold;
+    background-color: #fff;
+    color: #3c763d;
+    border-color: #3c763d;" class="btn btn-primary"><span class="fa fa-check-square"></span> ПРОВЕРИТЬ ПОДПИСИ</button>
+                <button id="download_btn" type="button" style="display:none; position: absolute; left: 515px;font-weight: bold;
+    background-color: #fff;
+    border-color: #337ab7;
+    color: #337ab7;" class="btn btn-default"><span class="fa fa-arrow-circle-down"></span> СОХРАНИТЬ</button>
+
                 <table id="table" class="table table-striped table-bordered" style="width:100%">
                     <thead>
                     <tr>
@@ -80,7 +82,7 @@
                         <th>Тип документа</th>
                         <th>Путь хранения</th>
                         <th>Статус</th>
-                        <th>Операции</th>
+                        <th>Статус подписи</th>
                     </tr>
                     </thead>
                 </table>
@@ -95,12 +97,24 @@
         <span class="glyphicon glyphicon-ok"></span> <strong>Успешно выполнено!</strong>
         <hr class="message-inner-separator">
         <p>
-            Файл успешно сохранен в папке для загрузок!</p>
+            ЭЦП документов проверена!</p>
+    </div>
+
+    <div id="alert_download" class="alert alert-success fade in" hidden="hidden">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+            ×</button>
+        <span class="glyphicon glyphicon-ok"></span> <strong>Успешно выполнено!</strong>
+        <hr class="message-inner-separator">
+        <p>
+            Документы сохранены в папку для загрузки файлов!</p>
     </div>
 
     <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/select/1.3.0/js/dataTables.select.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.5.6/js/dataTables.buttons.min.js"></script>
+    <script src="http://dev.avest.by/avcmxwebp/1.1.5/wrapper/avcmxwebp-1.1.5.js"></script>
     <script>
 
         $(document).ready(function() {
@@ -111,6 +125,22 @@
                     url: '/bank/getUploadFiles',
                     dataSrc: ''
                 },
+                dom: 'Bfrtip',
+                select: true,
+                buttons: [
+                    {
+                        text: 'Выбрать все',
+                        action: function () {
+                            table.rows().select();
+                        }
+                    },
+                    {
+                        text: 'Отменить выбор',
+                        action: function () {
+                            table.rows().deselect();
+                        }
+                    }
+                ],
                 language : {
                     "decimal":        "",
                     "emptyTable":     "Нет данных в таблице",
@@ -143,35 +173,201 @@
                     {data: 'typeDoc'},
                     {data: 'path'},
                     {data: 'status'},
-                    {data: null}
+                    {data: 'statusSign'}
                 ],
 
                 "columnDefs": [
                     {
-                        "targets": -1,
-                        "data": null,
+                        "targets": 5,
                         "orderable": false,
                         "searchable": false,
-                        "defaultContent": "<button style='border-radius: 25px;\n" +
-                            "    font-weight: bold;\n" +
-                            "    background-color: #fff;\n" +
-                            "    border-color: #1d4d75;\n" +
-                            "    color: #1d4d75;\n" +
-                            "    border-width: 1px;\n" +
-                            "    border-style: dashed;' class='btn btn-sm btn-success'><span class='fa fa-download'></span> СОХРАНИТЬ</button>"
+                        "render":function(data){
+                            return "<label style='font-size: 13px;\n" +
+                                 "    box-shadow: 0 7px 6px -6px #777;\n" +
+                                "    border-radius: 0px;    background-color: #335f34;color: white;' class='label label-success'>" + data + "</label>";
+                        },
+                        "className": 'dt-body-right'
+                    },
+                    {
+                        "targets": 6,
+                        "orderable": false,
+                        "searchable": false,
+                        "render":function(column){
+                            if(column !== null) {
+                                return "<span style='color:green; font-size: 20px;' class='fa fa-check-square-o'></span>"
+                            } else {
+                                return "<span style='color:orange; font-size: 20px;' class='fa fa-square-o'></span>";
+                            }
+
+                        },
+                        "className": 'dt-body-right'
                     }
                 ]
             });
 
-            $('#table tbody').on( 'click', 'button', function () {
-                var data = table.row( $(this).parents('tr') ).data();
-                window.location.href = 'download?uuid=' + data.uuid;
-                $('#table').DataTable().ajax.reload();
+
+            table
+                .on( 'select', function ( e, dt, type, indexes ) {
+                    var flagSign = false;
+                    var flagNoSign = false;
+                    table.rows({ selected: true }).every( function ( rowIdx, tableLoop, rowLoop ) {
+                        var data = this.data();
+                        if(data.statusSign === '0' || data.statusSign === null) {
+                            flagNoSign = true;
+                        } else {
+                            flagSign = true;
+                        }
+
+                    });
+                    if(flagSign) {
+                        $('#download_btn').css('display', 'block');
+                    } else {
+
+                        $('#download_btn').css('display', 'none');
+                    }
+                    if(flagNoSign) {
+                        $('#verify_btn').css('display', 'block');
+                    } else {
+
+                        $('#verify_btn').css('display', 'none');
+                    }
+
+
+
+                } )
+                .on( 'deselect', function ( e, dt, type, indexes ) {
+                    var data=table.rows( { selected: true }).data();
+                    if(data.length === 0) {
+                        $('#verify_btn').css('display', 'none');
+                        $('#download_btn').css('display', 'none');
+                    }
+                } );
+
+            $('#verify_btn').click(function () {
+                var conn = avcmx().connection();
+
+                    table.rows({ selected: true }).every( function ( rowIdx, tableLoop, rowLoop ) {
+                        var data = this.data();
+
+                        table.cell(rowIdx,6).data("1");
+                        //взять откуда то файлы?????
+                        var pathFileNoSgn = data.path;
+                        var pathFileSgn = pathFileNoSgn.substring(0, pathFileNoSgn.length - 4) + '_signature.sign';
+                        var contentNoSgn = loadFile(pathFileNoSgn);
+                        var contentSgn = loadFile(pathFileSgn);
+
+                        var currentSignature = conn.message(avcmx().blob().base64(contentSgn));
+                        if (!currentSignature.isSigned()){
+                            return "Файл не содержит подписи!";
+                        }
+                        var checker = conn.message(avcmx().blob().base64(currentSignature.val().base64()));
+
+                        checker.content(avcmx().blob().base64(contentNoSgn));
+
+                        var test = checker.verify();
+                        if(test) {
+                            table.cell(rowIdx,6).data("1");
+                        } else {
+                            table.cell(rowIdx,6).data("0");
+                        }
+                    }).draw();
+
+
+
+                $('#download_btn').css('display', 'block');
                 $("#alert_success").fadeTo(2000, 500).slideUp(500, function(){
                     $("#alert_success").slideUp(500);
                 });
-            } );
+            });
+
+            function loadFile(filePath) {
+                var result = null;
+                var xmlhttp = new XMLHttpRequest();
+                var filePathUri = encodeURI(filePath);
+                xmlhttp.open("GET", "/files/getContent?path=" + filePathUri, false);
+                xmlhttp.send();
+                if (xmlhttp.status === 200) {
+                    result = xmlhttp.responseText;
+                }
+                return result;
+
+            }
+
+            $('#download_btn').click(function () {
+                var filesArr = [];
+                var strRequest = '/bank/downloadZip?';
+                table.rows({ selected: true }).every( function ( rowIdx, tableLoop, rowLoop ) {
+                    var data = this.data();
+                    if(data.statusSign === '1') {
+                        filesArr.push(data.uuid);
+                        if (strRequest.charAt(strRequest.length - 1) === '?') {
+                            strRequest += 'files%5B%5D=' + data.uuid;
+                        } else {
+                            strRequest += '&files%5B%5D=' + data.uuid;
+                        }
+                    }
+                });
+                //window.location.href = "/bank/downloadZip?files=" + filesArr;
+
+                var resultFile = "download.zip";
+                var resultType = "application/zip";
+                var xhr = new XMLHttpRequest();
+                var blob;
+                xhr.open("GET", strRequest);
+                xhr.responseType = 'arraybuffer';
+                xhr.onload = function () {
+                    if (this.status === 200) {
+                        blob = new Blob([xhr.response], { type: resultType });
+                        var objectUrl = URL.createObjectURL(blob);
+                        saveAs(blob, resultFile);
+                        $("#alert_download").fadeTo(2000, 500).slideUp(500, function(){
+                            $("#alert_download").slideUp(500);
+                        });
+                        table.ajax.reload();
+                        $('#download_btn').css('display', 'none');
+                        $('#verify_btn').css('display', 'none');
+                    }
+                };
+                xhr.send();
+            });
         });
+
+        var connectEcp = function () {
+
+        };
+
+        var verifySign = function (fileNoSgn, fileSgn) {
+            var currentSignature = '';
+            avcmx().connectionAsync(AVCMF_NO_AUTH, function(errors,context){
+                if (errors !== undefined){
+                    return errors;
+                }
+
+                        currentSignature = context.message(avcmx().blob().base64(fileSgn));
+                        if (!currentSignature.isSigned()){
+                            return "Файл не содержит подписи!";
+                        }
+                        var checker = connection.message(avcmx().blob().base64(currentSignature.val().base64()));
+
+                        if (checker.content().base64() === "") {
+
+                            var reader = new FileReader();
+                            reader.readAsDataURL(fileNoSgn);
+                            reader.onerror = function (error) {
+                                console.log("Error : ", error);
+                            };
+                            reader.onload = function () {
+                                checker.content(avcmx().blob().base64(fileNoSgn));
+                                return true;
+                            }
+                        } else{
+                            return true;
+                        }
+
+            });
+        };
+
+
     </script>
 </body>
 </html>

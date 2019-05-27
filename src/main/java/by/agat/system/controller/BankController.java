@@ -6,6 +6,7 @@ import by.agat.system.services.DocumentService;
 import by.agat.system.services.DocumentStatusService;
 import by.agat.system.services.UserService;
 import by.agat.system.utility.Converter;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
@@ -18,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -29,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Controller
 @RequestMapping("/bank")
@@ -80,28 +84,46 @@ public class BankController {
         return documents;
     }
 
-    @GetMapping("/download")
-    public ResponseEntity<InputStreamResource> downloadFile(@RequestParam Long uuid) throws IOException {
+    @RequestMapping(value = "/downloadZip", method = RequestMethod.GET)
+    public void downloadFile(@RequestParam("files[]") List<Integer> files, HttpServletResponse response) throws IOException  {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User user = userService.findByUsername(userDetails.getUsername());
-        Document document = documentService.getDocumentByUUID(uuid);
-        File file = getFile(document.getPath());
-        InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
-        DocumentStatus documentStatus = new DocumentStatus();
-        documentStatus.setUser(user);
-        documentStatus.setDocument(document);
-        documentStatus.setDateChange(new Date());
-        Status status = new Status();
-        status.setId(3);
-        documentStatus.setStatus(status);
-        documentStatusService.save(documentStatus);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment;filename=" + file.getName())
-                .contentType(MediaType.APPLICATION_PDF).contentLength(file.length())
-                .body(resource);
+        List<String> fileNames = new ArrayList<>();
+        for (Integer uuid:files) {
+            Long uuidLong = Long.valueOf(uuid);
+            Document document = documentService.getDocumentByUUID(uuidLong);
+            File file = getFile(document.getPath());
+            fileNames.add(document.getPath());
+            InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+            DocumentStatus documentStatus = new DocumentStatus();
+            documentStatus.setUser(user);
+            documentStatus.setDocument(document);
+            documentStatus.setDateChange(new Date());
+            Status status = new Status();
+            status.setId(3);
+            documentStatus.setStatus(status);
+            documentStatusService.save(documentStatus);
+        }
+
+        response.setContentType("application/octet-stream");
+        response.setHeader("Content-Disposition", "attachment;filename=\"download.zip\"");
+
+        try (ZipOutputStream zippedOut = new ZipOutputStream(response.getOutputStream())) {
+            for (String file : fileNames) {
+                FileSystemResource resource = new FileSystemResource(file);
+                ZipEntry e = new ZipEntry(resource.getFilename());
+                e.setSize(resource.contentLength());
+                e.setTime(System.currentTimeMillis());
+                zippedOut.putNextEntry(e);
+                IOUtils.copy(resource.getInputStream(), zippedOut);
+                zippedOut.closeEntry();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
     private File getFile(String filepath) throws FileNotFoundException {
         File file = new File(filepath);
         if (!file.exists()){

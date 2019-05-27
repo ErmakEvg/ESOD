@@ -10,6 +10,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +34,11 @@ public class FileController {
         documents = fileWorker.getAllDocuments();
         return documents;
     }*/
+
+    @GetMapping(value = "/getContent")
+    private @ResponseBody String getData(@RequestParam("path") String path) throws IOException {
+        return FileWorker.readFromFile(path);
+    }
 
 
 }
