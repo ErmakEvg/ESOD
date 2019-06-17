@@ -1,9 +1,10 @@
 package by.agat.system.utility;
 
-import by.agat.system.domain.Document;
-import by.agat.system.domain.DocumentDTO;
-import by.agat.system.domain.User;
-import by.agat.system.domain.UserDTO;
+import by.agat.system.domain.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class Converter {
 
@@ -29,5 +30,26 @@ public class Converter {
         userDTO.setRole(user.getRoles().get(0));
         userDTO.setUsername(user.getUsername());
         return userDTO;
+    }
+
+    public static User convertFromUserSaveModelToUser(UserSaveModel userSaveModel) {
+        User user = new User();
+        user.setCodeBank(userSaveModel.getCodeBank());
+        user.setDateRegistration(new Date());
+        if(userSaveModel.isEnabled()) {
+            user.setEnabled(new Byte("1"));
+        } else {
+            user.setEnabled(new Byte("0"));
+        }
+
+        user.setFirstname(userSaveModel.getFirstname());
+        user.setSurname(userSaveModel.getSurname());
+        List<Role> roles = new ArrayList<>();
+        Role role = new Role();
+        role.setId(userSaveModel.getRole());
+        roles.add(role);
+        user.setRoles(roles);
+        user.setUsername(userSaveModel.getUsername());
+        return user;
     }
 }

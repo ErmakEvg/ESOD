@@ -8,10 +8,7 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/login.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/styles.css}">
     <link rel="stylesheet" type="text/css" th:href="@{/css/insp.css}">
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
-    <script src="https://fastcdn.org/FileSaver.js/1.1.20151003/FileSaver.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/locale/ru.js"></script>
+
 
 
     <title>ЕДИНАЯ СИСТЕМА ОБМЕНА ВЫПЛАТНЫМИ ДОКУМЕНТАМИ</title>
@@ -111,24 +108,25 @@
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h4 class="modal-title">Регистрация пользователя</h4>
             </div>
+            <form th:action="@{/admin/users/save}" method="post" th:object="${userSaveModel}">
             <div class="modal-body">
-                <form>
+
                     <div class="form-group row">
                         <label for="username" class="col-sm-4 col-form-label form-label">Имя пользователя:</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control form-input" id="username" autocomplete="off" placeholder="Введите имя пользователя">
+                            <input type="text" th:field="*{username}" class="form-control form-input" id="username" autocomplete="off" placeholder="Введите имя пользователя">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="surname" class="col-sm-4 col-form-label form-label">Фамилия:</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control form-input" id="surname" autocomplete="off" placeholder="Введите фамилию">
+                            <input type="text" th:field="*{surname}" class="form-control form-input" id="surname" autocomplete="off" placeholder="Введите фамилию">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label for="firstname" class="col-sm-4 col-form-label form-label">Имя:</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control form-input" id="firstname" autocomplete="off" placeholder="Введите имя">
+                            <input type="text" th:field="*{firstname}" class="form-control form-input" id="firstname" autocomplete="off" placeholder="Введите имя">
                         </div>
                     </div>
                     <div class="form-group row">
@@ -137,39 +135,42 @@
                         </label>
                         <div class="col-sm-8">
                             <div class="form-check">
-                                <input class="form-check-input form-input" type="checkbox" id="block_check">
+                                <input th:field="*{enabled}" class="form-check-input form-input" type="checkbox" id="block_check">
                             </div>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-4 col-form-label form-label" for="role_select">Роль</label>
                         <div class="col-sm-8">
-                            <select class="form-control form-input" id="role_select">
-                                <option selected>Выберите роль...</option>
+                            <select th:field="*{role}" class="form-control form-input" id="role_select">
+                                <option value="-1" selected>Выберите роль...</option>
                                 <option value="1">Администратор</option>
                                 <option value="2">Сотрудник комитета</option>
                                 <option value="3">Сотрудник банка</option>
                             </select>
                         </div>
                     </div>
-                    <div class="form-group row" hidden="hidden">
-                        <label for="codebank" class="col-sm-4 col-form-label form-label">Отделение банка:</label>
+                    <div id="codebankdiv" class="form-group row" hidden="hidden">
+                        <label for="codebank" class="col-sm-4 col-form-label form-label">Отделение банка</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control form-input" id="codebank" autocomplete="off" placeholder="Введите номер отделения">
+                            <input th:field="*{codeBank}" type="text" class="form-control form-input" id="codebank" autocomplete="off" placeholder="Введите номер отделения">
                         </div>
                     </div>
-                </form>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">ОТМЕНА</button>
-                <button type="button" class="btn btn-primary">СОХРАНИТЬ</button>
+                <input type="submit" class="btn btn-primary" value="СОХРАНИТЬ"/>
             </div>
+            </form>
         </div>
     </div>
 </div>
 
 
-
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/locale/ru.js"></script>
 
 <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
@@ -263,6 +264,15 @@
                     "    color: #337ab7;'" + " class='btn btn-sm btn-default'><span class='fa fa-eye'></span></button>"
                 }
             ]
+        });
+
+        $('#role_select').change(function () {
+            var selectVal = $('#role_select').val();
+            if(selectVal === '3') {
+                $('#codebankdiv').show();
+            } else {
+                $('#codebankdiv').hide();
+            }
         });
 
     });

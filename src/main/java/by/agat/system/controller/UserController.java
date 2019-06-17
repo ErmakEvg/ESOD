@@ -2,6 +2,7 @@ package by.agat.system.controller;
 
 import by.agat.system.domain.User;
 import by.agat.system.domain.UserDTO;
+import by.agat.system.domain.UserSaveModel;
 import by.agat.system.repository.UserRepository;
 import by.agat.system.services.UserService;
 import by.agat.system.utility.Converter;
@@ -13,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Controller
-@RequestMapping("users")
+@RequestMapping("/users")
 public class UserController {
 
     @Autowired
@@ -30,12 +31,6 @@ public class UserController {
         }
         return userDTOs;
     }
-
-    @PostMapping("/save")
-    public void saveUser(@ModelAttribute User user) {
-        userService.save(user);
-    }
-
 
 
 }

@@ -16,7 +16,6 @@ public class User {
     @Column(name = "ID")
     private int user_id;
 
-    @UniqueElements
     @Column(name = "USERNAME")
     private String username;
 
